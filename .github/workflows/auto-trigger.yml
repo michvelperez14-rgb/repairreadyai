@@ -2,7 +2,7 @@
 # Auto‑Trigger Deploy workflow
 # --------------------------------------------------------------
 # Runs daily at 03:00 UTC (and can be triggered manually) to
-# push a tiny `trigger.txt` file, which in turn fires the
+# push a tiny trigger.txt file, which in turn fires the
 # existing Deploy RepairReady AI workflow.
 # --------------------------------------------------------------
 
@@ -14,8 +14,10 @@ on:
   workflow_dispatch:      # also allow manual runs
 
 jobs:
-  push_dummy_commit:          # <-- plain ASCII characters only
+  push_dummy_commit:          # <-- plain ASCII only
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # optional – silences Node‑20 warning
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -31,9 +33,20 @@ jobs:
           git add trigger.txt
           git commit -m "🤖 Auto‑trigger: keep workflow alive"
 
+      # Optional sanity‑check – confirms the secret is being read
+      - name: Verify PAT is set
+        env:
+          PAT: ${{ secrets.AUTOMATION_PAT }}
+        run: |
+          if [ -z "$PAT" ]; then
+            echo "❌ PAT variable is empty – check the secret name/value."
+            exit 1
+          else
+            echo "✅ PAT variable is present (value hidden)."
+          fi
+
       - name: Push commit using PAT
         env:
           PAT: ${{ secrets.AUTOMATION_PAT }}
         run: |
           git push https://${PAT}@github.com/michvelperez14-rgb/repairreadyai.git HEAD:main
-
