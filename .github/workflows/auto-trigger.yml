@@ -1,0 +1,40 @@
+# --------------------------------------------------------------
+# Auto‑Trigger Deploy workflow
+# --------------------------------------------------------------
+# This workflow runs once every day (03:00 UTC) and also
+# supports manual runs via the “Run workflow” button.
+# It creates/updates a tiny `trigger.txt` file and pushes it
+# back to the repository, which automatically triggers the
+# existing Deploy RepairReady AI workflow.
+# --------------------------------------------------------------
+
+name: Auto‑Trigger Deploy
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 03:00 UTC each day
+  workflow_dispatch:      # also allow manual runs
+
+jobs:
+  push‑dummy‑commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure Git
+        run: |
+          git config user.name "Automation Bot"
+          git config user.email "automation@repairready.ai"
+
+      - name: Create dummy file (or update timestamp)
+        run: |
+          echo "trigger: $(date -u +'%Y-%m-%dT%H:%M:%SZ')" > trigger.txt
+          git add trigger.txt
+          git commit -m "🤖 Auto‑trigger: keep workflow alive"
+
+      - name: Push commit using PAT
+        env:
+          PAT: ${{ secrets.AUTOMATION_PAT }}
+        run: |
+          git push https://${PAT}@github.com/michvelperez14-rgb/repairreadyai.git HEAD:main
