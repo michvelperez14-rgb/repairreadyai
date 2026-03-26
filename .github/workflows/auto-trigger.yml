@@ -14,7 +14,7 @@ on:
   workflow_dispatch:      # also allow manual runs
 
 jobs:
-  push_dummy_commit:          # <-- plain ASCII only
+  push_dummy_commit:          # plain ASCII job ID
     runs-on: ubuntu-latest
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true   # optional – silences Node‑20 warning
@@ -33,13 +33,12 @@ jobs:
           git add trigger.txt
           git commit -m "🤖 Auto‑trigger: keep workflow alive"
 
-      # Optional sanity‑check – confirms the secret is being read
-      - name: Verify PAT is set
+      - name: Verify PAT is set   # optional sanity‑check
         env:
           PAT: ${{ secrets.AUTOMATION_PAT }}
         run: |
           if [ -z "$PAT" ]; then
-            echo "❌ PAT variable is empty – check the secret name/value."
+            echo "❌ PAT variable is empty – check secret name/value."
             exit 1
           else
             echo "✅ PAT variable is present (value hidden)."
